@@ -1,4 +1,6 @@
-🌎 Read this in: [English] (README.md)
+🌐 Idioma:
+[English](README.md) | [Español](README.es.md)
+
 
 📦 Fullstack – Sistema Web de Gestión
 
