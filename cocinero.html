@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" href="logo.png">
+  <title>Panel Cocinero - El Sazón de Teté</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { margin: 0; padding: 20px; background: #f8f9fb; font-family: 'Inter', Arial, sans-serif; display: flex; justify-content: center; }
+    .container { width: 50%; min-width: 300px; }
+    h1 { text-align: center; margin-bottom: 12px; color: #1f2937; display:flex; align-items:center; justify-content:center; gap:10px; }
+    .logo { width:80px; height:auto; }
+    .links { display:flex; justify-content:center; gap:12px; margin-bottom:12px; }
+    .links a { text-decoration:none; background:#0b8457; color:#fff; padding:8px 14px; border-radius:8px; font-weight:600; }
+    .work-block { background: #fff; border-radius: 10px; padding: 14px; margin-bottom: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .work-block h2 { margin:0 0 10px 0; font-size:1.05rem; color:#1f2937; display:flex; align-items:center; gap:8px; }
+    .work-list { display:flex; flex-direction:column; gap:10px; min-height:44px; }
+    .order-card { border-radius: 10px; padding: 12px; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,0.04); position: relative; transition: transform 220ms ease, box-shadow 220ms ease; }
+    .order-card.new-flash { transform: translateY(-6px); box-shadow: 0 6px 18px rgba(0,0,0,0.12); animation: flashPulse 900ms ease; }
+    @keyframes flashPulse { 0% { background: #fff; } 50% { background: #fffdef; } 100% { background: #fff; } }
+    .order-card .order-meta { display:flex; justify-content:space-between; font-weight:600; margin-bottom:6px; }
+    .order-card .platillos { padding-left:18px; margin:6px 0; }
+    .order-card .actions { margin-top:8px; display:flex; gap:6px; }
+    .order-card .actions button { padding:6px 10px; border-radius:6px; border:none; cursor:pointer; }
+    .order-card .prepared { background:#16a34a; color:#fff; }
+    .order-card .delete { background:#e74c3c; color:#fff; }
+    .status-pill { position: absolute; top:10px; right:10px; padding:4px 10px; border-radius:6px; font-weight:600; font-size:0.8rem; text-transform:uppercase; color:#fff; }
+    .status-pendiente { background:#f1c40f; color:#000; }
+    .status-preparada { background:#2ecc71; }
+    .empty { padding: 12px; background: #f4f4f6; border-radius: 8px; color: #666; text-align: center; }
+    #ordersContainer { margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="titulo-logo">
+      <img src="assets/logo.png" alt="El Sazón de Teté — logo" class="logo" />
+      COCINA
+      <img src="assets/logo.png" alt="El Sazón de Teté — logo" class="logo" />
+    </h1>
+    <div class="links">
+      <a href="admin.html">Regresar a Admin</a>
+    </div>
+
+    <section class="work-block" aria-labelledby="workTitle">
+      <h2 id="workTitle">Pedidos por trabajar</h2>
+      <div id="workList" class="work-list">
+        <div class="empty">Cargando pedidos...</div>
+      </div>
+    </section>
+
+    <div id="ordersContainer"></div>
+  </div>
+
+  <script type="module">
+    import { db } from './app.js';
+    import { collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const workList = document.getElementById('workList');
+    const ordersContainer = document.getElementById('ordersContainer');
+
+    function escapeHtml(str){ if(!str) return ''; return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
+    function renderPlatillosList(p){ if(!p||p.length===0) return '<li>No hay platillos.</li>'; return p.map(i=>{ if(!i) return '<li>-</li>'; if(typeof i==='string') return `<li>${escapeHtml(i)}</li>`; const n=i.nombre??i.name??'Sin nombre'; const c=('cantidad' in i)?i.cantidad:(i.qty??1); return `<li>${escapeHtml(c)} × ${escapeHtml(n)}</li>` }).join(''); }
+    function formatShortDate(v){ if(!v) return ''; const d=v.toDate?v.toDate():new Date(v); return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getFullYear()).slice(-2)}`; }
+
+    function createCookCard(docItem){
+      const r = docItem.data(), id = docItem.id;
+      const div = document.createElement('div'); div.className='order-card'; div.dataset.id=id;
+      const createdAtText = r.createdAt ? formatShortDate(r.createdAt) : '';
+      const orderNumberText = r.orderNumber!==undefined ? `Orden #${escapeHtml(String(r.orderNumber))}` : `ID ${escapeHtml(id)}`;
+      const status = (r.status||'Pendiente').toLowerCase();
+      const statusClass = status==='preparada'?'status-preparada':'status-pendiente';
+      div.innerHTML=`
+        <div class="order-meta">
+          <div>${escapeHtml(orderNumberText)}</div>
+          <div>${escapeHtml(createdAtText)}</div>
+        </div>
+        <div><strong>Platillos:</strong><ul class="platillos">${renderPlatillosList(r.platillos)}</ul></div>
+        ${r.numeroMesa?`<p><strong>Número de mesa:</strong> ${escapeHtml(r.numeroMesa)}</p>`:''}
+        ${r.notas?`<p><strong>Notas:</strong> ${escapeHtml(r.notas)}</p>`:''}
+        <div class="actions">
+          ${status==='pendiente'?`<button class="prepared">Marcar como Preparada</button>`:''}
+          <button class="delete">Eliminar Orden</button>
+        </div>
+        <div class="status-pill ${statusClass}">${escapeHtml(r.status||'Pendiente')}</div>
+      `;
+      div.querySelector('.prepared')?.addEventListener('click',async()=>{try{await updateDoc(doc(db,'pedidos',id),{status:'Preparada'})}catch(err){console.error(err);alert('Error al marcar como preparada.');}});
+      div.querySelector('.delete').addEventListener('click',async()=>{try{await deleteDoc(doc(db,'pedidos',id))}catch(err){console.error(err);alert('Error al eliminar la orden.');}});
+      return div;
+    }
+
+    const workCards = new Map(), otherCards = new Map();
+    let prevPendingIds = new Set(), firstSnapshot = true;
+
+    // 🔔 Audio con interacción del usuario
+    let audioCtx = null, canPlayAudio = false;
+    document.body.addEventListener('click',()=>{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); canPlayAudio=true; }, {once:true});
+    function playBell(){
+      if(!canPlayAudio||!audioCtx) return;
+      try{
+        const now = audioCtx.currentTime;
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+        osc1.type='sine'; osc2.type='triangle';
+        osc1.frequency.setValueAtTime(1140,now); osc2.frequency.setValueAtTime(760,now);
+        osc1.detune.setValueAtTime(4,now); osc2.detune.setValueAtTime(-6,now);
+        filter.type='lowpass'; filter.frequency.setValueAtTime(6000,now);
+        gain.gain.setValueAtTime(0.0001,now); gain.gain.exponentialRampToValueAtTime(0.35,now+0.01); gain.gain.exponentialRampToValueAtTime(0.06,now+0.22); gain.gain.exponentialRampToValueAtTime(0.0001,now+1.6);
+        osc1.frequency.exponentialRampToValueAtTime(920,now+0.22); osc2.frequency.exponentialRampToValueAtTime(640,now+0.22);
+        osc1.connect(filter); osc2.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+        osc1.start(now); osc2.start(now); osc1.stop(now+1.6); osc2.stop(now+1.6);
+      }catch(e){console.warn('Audio falló',e);}
+    }
+
+    onSnapshot(collection(db,'pedidos'),snapshot=>{
+      const pendientes=[], otros=[];
+      snapshot.docs.slice().sort((a,b)=>{const A=a.data().orderNumber??0,B=b.data().orderNumber??0;if(A!==B)return A-B;const at=a.data().createdAt?.seconds??0,bt=b.data().createdAt?.seconds??0; return at-bt;}).forEach(docItem=>{
+        const st=(docItem.data().status||'').toLowerCase();
+        if(st==='pendiente'||st==='') pendientes.push(docItem); else otros.push(docItem);
+      });
+
+      const currentPendingIds = new Set(pendientes.map(d=>d.id));
+      const newlyAdded = [];
+      for(const id of currentPendingIds) if(!prevPendingIds.has(id)) newlyAdded.push(id);
+
+      [...workCards.keys()].forEach(id=>{if(!currentPendingIds.has(id)){const node=workCards.get(id);if(node)node.remove();workCards.delete(id);}});
+
+      if(pendientes.length===0) workList.innerHTML='<div class="empty">No hay órdenes por trabajar.</div>';
+      else{if(workList.querySelector('.empty')) workList.innerHTML=''; pendientes.forEach(docItem=>{const id=docItem.id;if(!workCards.has(id)){const card=createCookCard(docItem);workCards.set(id,card);workList.appendChild(card);}else{const existing=workCards.get(id);const newCard=createCookCard(docItem);workList.replaceChild(newCard,existing);workCards.set(id,newCard);}})}
+
+      ordersContainer.innerHTML=''; otherCards.clear(); otros.forEach(docItem=>{const card=createCookCard(docItem);ordersContainer.appendChild(card);otherCards.set(docItem.id,card);});
+
+      if(!firstSnapshot && newlyAdded.length>0){playBell(); newlyAdded.forEach(id=>{const node=workCards.get(id);if(node){node.classList.add('new-flash');setTimeout(()=>node.classList.remove('new-flash'),1100);}});}
+
+      prevPendingIds = currentPendingIds;
+      firstSnapshot = false;
+    });
+  </script>
+</body>
+</html>

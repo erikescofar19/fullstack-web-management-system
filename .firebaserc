@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "sazon-tete"
+  },
+  "targets": {
+    "sazon-tete": {
+      "hosting": {
+        "client": [
+          "sazon-tete"
+        ],
+        "admin": [
+          "admin-sazon-tete"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

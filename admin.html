@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="logo.png">
+  <title>Admin - El Sazón de Teté</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #f8f9fb;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 50%;
+      min-width: 300px;
+    }
+    h1 { 
+      margin-bottom: 16px; 
+      color: #1f2937; 
+      text-align: center; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      gap: 10px;
+    }
+    .logo {
+      width: 80px;
+      height: auto;
+    }
+    form#adminLoginForm {
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    form#adminLoginForm input, form#adminLoginForm button {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 0.95rem;
+    }
+    form#adminLoginForm button {
+      background: #0b8457;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    form#adminLoginForm button:hover { opacity: 0.9; }
+    #logoutBtn {
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: none;
+      background: #e74c3c;
+      color: #fff;
+      cursor: pointer;
+      margin-top: 10px;
+      width: 100%;
+      transition: all 0.15s ease;
+    }
+    #logoutBtn:hover { opacity: 0.9; }
+    .card {
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 14px;
+      position: relative;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    }
+    .card.pedido { border-left: 4px solid #2ecc71; background: #d4f7dc; }
+    .card.reserva { border-left: 4px solid #3498db; background: #d4e7f7; }
+    .card button {
+      margin-right: 6px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.12s ease;
+    }
+    .card button:hover { opacity: 0.9; }
+    .approve { background: #2ecc71; color: #fff; }
+    .cancel { background: #e74c3c; color: #fff; }
+    .delete { background: #34495e; color: #fff; }
+    .status {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #fff;
+      text-transform: uppercase;
+    }
+    .status.pendiente { background:#f1c40f; color:#000; }
+    .status.preparada { background:#2ecc71; }
+    .status.aprobada { background:#2ecc71; }
+    .status.cancelada { background:#e74c3c; }
+    .empty {
+      padding: 12px;
+      background: #f4f4f6;
+      border-radius: 8px;
+      color: #666;
+      text-align: center;
+    }
+    .links {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .links a {
+      text-decoration: none;
+      background: #0b8457;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .links a:hover { background: #096b47; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <h1 class="titulo-logo">
+      <img src="assets/logo.png" alt="El Sazón de Teté — logo" class="logo" />
+      PANEL ADMIN
+      <img src="assets/logo.png" alt="El Sazón de Teté — logo" class="logo" />
+    </h1>
+
+    <div class="links">
+      <a href="cocinero.html">Ir a Cocina</a>
+      <a href="cajero.html">Ir a Cajero</a>
+    </div>
+
+    <!-- Login -->
+    <form id="adminLoginForm">
+      <input id="adminEmail" type="email" placeholder="Correo" required>
+      <input id="adminPassword" type="password" placeholder="Contraseña" required>
+      <button type="submit">Login</button>
+    </form>
+
+    <!-- Contenedor de reservas y pedidos -->
+    <div id="cardsContainer" style="margin-top:20px;"></div>
+
+    <button id="logoutBtn">Cerrar sesión</button>
+  </div>
+
+<script type="module">
+import { db } from './app.js';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+const auth = getAuth();
+const loginForm = document.getElementById('adminLoginForm');
+const logoutBtn = document.getElementById('logoutBtn');
+const cardsContainer = document.getElementById('cardsContainer');
+
+function escapeHtml(str){
+  if(str===undefined||str===null) return '';
+  return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'","&#39;");
+}
+
+let isAdmin = false;
+
+if(loginForm){
+  loginForm.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const email = document.getElementById('adminEmail').value;
+    const password = document.getElementById('adminPassword').value;
+    try{
+      await signInWithEmailAndPassword(auth,email,password);
+      loginForm.reset();
+    }catch(err){
+      console.error("❌ Error login:",err);
+      alert("Credenciales incorrectas.");
+    }
+  });
+}
+
+if(logoutBtn){
+  logoutBtn.addEventListener('click', async ()=>{
+    await signOut(auth);
+    alert("Has cerrado sesión.");
+  });
+}
+
+function renderPlatillosList(platillos){
+  if(!platillos||platillos.length===0) return '<li>No hay platillos.</li>';
+  return platillos.map(p=>{
+    if(typeof p==='string') return `<li>${escapeHtml(p)}</li>`;
+    return `<li>${escapeHtml(p.cantidad)} × ${escapeHtml(p.nombre)}</li>`;
+  }).join('');
+}
+
+function renderCard(docItem, type){
+  const r = docItem.data();
+  const div = document.createElement('div');
+  div.className='card ' + type;
+  div.dataset.type=type;
+
+  let createdAtText='';
+  if(r.createdAt && typeof r.createdAt.toDate==='function') createdAtText = r.createdAt.toDate().toLocaleString();
+  else if(r.createdAt) createdAtText = String(r.createdAt);
+
+  const title = type==='pedido' ? `Pedido #${escapeHtml(r.orderNumber || docItem.id)}` : `Reserva #${escapeHtml(r.orderNumber || docItem.id)}`;
+  const statusClass = (r.status||'pendiente').toLowerCase();
+
+  const botones = isAdmin ? `
+    <button class="approve">Aprobar</button>
+    <button class="cancel">Cancelar</button>
+    <button class="delete">Eliminar</button>
+  ` : '';
+
+  div.innerHTML=`
+    <span class="status ${statusClass}">${escapeHtml(r.status || 'Pendiente')}</span>
+    <p><strong>${title}</strong> ${createdAtText?` · ${escapeHtml(createdAtText)}`:''}</p>
+    ${ r.platillos ? `<p><strong>Platillos:</strong><ul>${renderPlatillosList(r.platillos)}</ul></p>` : '' }
+    ${ r.numeroMesa ? `<p><strong>Número de mesa:</strong> ${escapeHtml(r.numeroMesa)}</p>` : '' }
+    ${ r.notas ? `<p><strong>Notas:</strong> ${escapeHtml(r.notas)}</p>` : '' }
+    ${ r.nombre ? `<p><strong>Nombre:</strong> ${escapeHtml(r.nombre)}</p>` : '' }
+    ${ r.email ? `<p><strong>Email:</strong> ${escapeHtml(r.email)}</p>` : '' }
+    ${ r.fecha ? `<p><strong>Fecha:</strong> ${escapeHtml(r.fecha)} ${r.hora?` · ${escapeHtml(r.hora)}`:''}</p>` : '' }
+    ${ r.personas ? `<p><strong>Personas:</strong> ${escapeHtml(r.personas)}</p>` : '' }
+    <div style="margin-top:6px;">${botones}</div>
+  `;
+
+  if(isAdmin){
+    div.querySelector('.approve').onclick = async ()=>{
+      try { await updateDoc(doc(db,type==='pedido'?'pedidos':'reservations',docItem.id),{status:type==='pedido'?'Preparada':'Aprobada'}); }
+      catch(err){ console.error(err); alert("Error al aprobar"); }
+    };
+    div.querySelector('.cancel').onclick = async ()=>{
+      try { await updateDoc(doc(db,type==='pedido'?'pedidos':'reservations',docItem.id),{status:'Cancelada'}); }
+      catch(err){ console.error(err); alert("Error al cancelar"); }
+    };
+    div.querySelector('.delete').onclick = async ()=>{
+      if(!confirm("¿Seguro que quieres eliminar?")) return;
+      try { await deleteDoc(doc(db,type==='pedido'?'pedidos':'reservations',docItem.id)); }
+      catch(err){ console.error(err); alert("Error al eliminar"); }
+    };
+  }
+
+  cardsContainer.appendChild(div);
+}
+
+onAuthStateChanged(auth, user=>{
+  if(!user){
+    cardsContainer.innerHTML="<div class='empty'>Inicia sesión para ver reservas y pedidos.</div>";
+    return;
+  }
+
+  isAdmin = user.email === "360.galo@gmail.com";
+
+  onSnapshot(collection(db,'pedidos'), snapshot=>{
+    const existing = Array.from(cardsContainer.children).filter(c=>c.dataset.type==='pedido');
+    existing.forEach(c=>c.remove());
+    snapshot.docs.slice().sort((a,b)=> (a.data().orderNumber??0)-(b.data().orderNumber??0) )
+      .forEach(docItem=>{ renderCard(docItem,'pedido'); });
+  });
+
+  onSnapshot(collection(db,'reservations'), snapshot=>{
+    const existing = Array.from(cardsContainer.children).filter(c=>c.dataset.type==='reserva');
+    existing.forEach(c=>c.remove());
+    snapshot.docs.slice().sort((a,b)=> (a.data().orderNumber??0)-(b.data().orderNumber??0) )
+      .forEach(docItem=>{ renderCard(docItem,'reserva'); });
+  });
+});
+</script>
+</body>
+</html>

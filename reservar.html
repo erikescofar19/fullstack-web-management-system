@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="logo.png">
+  <title>Reservar</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-image: url('assets/bg.jpg');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      max-width: 420px;
+      width: 90%;
+    }
+
+    .titulo-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: rgba(255,255,255,0.85);
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .logo { width: 72px; height: auto; }
+
+    .link-volver a {
+      text-decoration: none;
+      color: #0b8457;
+      font-weight: bold;
+    }
+    .link-volver a:hover { text-decoration: underline; }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+    }
+
+    input, textarea, button {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    button {
+      background: #0b8457;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    #msg {
+      text-align: center;
+      min-height: 18px;
+    }
+
+    @media (max-width: 720px) {
+      .logo { width: 56px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1 class="titulo-logo">
+    RESERVACIONES
+    <img src="assets/logo.png" alt="El Sazón de Teté — logo" class="logo" />
+  </h1>
+
+  <div class="link-volver">
+    <a href="index.html">← Volver al menú</a>
+  </div>
+
+  <form id="resForm">
+    <input type="text" id="nombre" placeholder="Nombre completo" required>
+    <input type="email" id="email" placeholder="Correo electrónico" required>
+    <input type="date" id="fecha" required>
+    <input type="time" id="hora" required>
+    <input type="number" id="personas" placeholder="Número de personas" min="1" required>
+    <textarea id="notas" placeholder="Notas adicionales"></textarea>
+    <button type="submit">Reservar</button>
+  </form>
+
+  <p id="msg"></p>
+</div>
+
+<script type="module">
+import { db } from './app.js';
+import { collection, getDocs, query, orderBy, limit, setDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const resForm = document.getElementById('resForm');
+const msgEl = document.getElementById('msg');
+
+async function getNextReservationNumber() {
+  try {
+    // Buscar el último número de reserva
+    const q = query(collection(db, "reservations"), orderBy("orderNumber", "desc"), limit(1));
+    const snap = await getDocs(q);
+    if (snap.empty) return 1;
+    const lastNum = snap.docs[0].data().orderNumber;
+    return lastNum ? lastNum + 1 : 1;
+  } catch (err) {
+    console.warn("Error obteniendo next reservation number, usando timestamp:", err);
+    return Math.floor(Date.now()/1000); // fallback si no hay permisos
+  }
+}
+
+resForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  msgEl.innerText = '';
+
+  const nombre = resForm.nombre.value.trim();
+  const email = resForm.email.value.trim();
+  const fecha = resForm.fecha.value;
+  const hora = resForm.hora.value;
+  const personas = parseInt(resForm.personas.value, 10);
+  const notas = resForm.notas.value.trim();
+
+  if (!nombre || !email || !fecha || !hora || isNaN(personas) || personas<1) {
+    msgEl.innerText = 'Completa todos los campos correctamente.';
+    return;
+  }
+
+  msgEl.innerText = 'Generando reserva...';
+  const nextNum = await getNextReservationNumber();
+
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2,'0');
+  const mm = String(today.getMonth()+1).padStart(2,'0');
+  const yy = String(today.getFullYear()).slice(-2);
+
+  const reservaId = `reserva${nextNum} ${dd}-${mm}-${yy}`;
+
+  const data = {
+    orderNumber: nextNum,
+    nombre,
+    email,
+    fecha,
+    hora,
+    personas,
+    notas,
+    status: "pendiente",
+    createdAt: serverTimestamp()
+  };
+
+  try {
+    await setDoc(doc(db, "reservations", reservaId), data);
+    msgEl.innerText = `✅ Reserva creada. Reserva #${nextNum}`;
+    resForm.reset();
+  } catch(err) {
+    console.error("Error creando reserva:", err);
+    msgEl.innerText = "Error al crear la reserva. Revisa la consola.";
+  }
+});
+</script>
+
+</body>
+</html>

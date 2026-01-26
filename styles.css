@@ -1,0 +1,165 @@
+/* styles.css — Estilo profesional para index / reservar / admin / cocinero */
+/* Variables */
+:root{
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --text: #0f1724;
+  --accent: #0b8457;     /* verde principal */
+  --accent-600: #0a7a4d;
+  --blue: #2b7bd3;
+  --danger: #e74c3c;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --glass: rgba(255,255,255,0.85);
+  --soft-border: rgba(16,24,40,0.06);
+  --shadow-sm: 0 6px 18px rgba(16,24,40,0.06);
+  --radius: 12px;
+  --max-width: 1160px;
+  --pad: 18px;
+  --font: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Reset / base */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+.container{max-width:var(--max-width);margin:0 auto;padding:var(--pad)}
+
+/* Typography */
+h1{font-size:1.6rem;margin:0 0 8px 0}
+h2{font-size:1.15rem;margin:0 0 8px 0}
+.center{text-align:center}
+.small{font-size:0.9rem;color:var(--muted)}
+
+/* Generic card & panel */
+.card, .panel {
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:14px;
+  border:1px solid var(--soft-border);
+  box-shadow:var(--shadow-sm);
+}
+
+/* Layout helpers */
+.row{display:flex;gap:16px;align-items:flex-start}
+.col{flex:1}
+.stack{display:flex;flex-direction:column;gap:12px}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 14px;border-radius:10px;border:none;cursor:pointer;
+  background:var(--accent);color:#fff;font-weight:700;box-shadow:0 8px 24px rgba(11,132,87,0.12);
+}
+.btn.secondary{background:var(--blue);box-shadow:0 8px 24px rgba(43,123,211,0.08)}
+.btn.ghost{background:transparent;border:1px solid var(--soft-border);color:var(--text);box-shadow:none}
+.btn.sm{padding:6px 8px;border-radius:8px;font-size:0.9rem}
+.btn.danger{background:var(--danger);box-shadow:0 8px 24px rgba(231,76,60,0.08)}
+
+/* FORM ELEMENTS */
+input[type="text"], input[type="email"], input[type="date"], input[type="time"], input[type="number"], textarea, select{
+  width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(16,24,40,0.06);background:#fff;font-size:1rem;color:var(--text);outline:none;
+  transition:box-shadow .12s, border-color .12s;
+}
+input:focus, textarea:focus, select:focus{box-shadow:0 8px 18px rgba(11,132,87,0.08);border-color:rgba(11,132,87,0.9)}
+textarea{min-height:110px;resize:vertical}
+
+/* MENU styles (index) */
+.menu-wrap{display:flex;gap:28px;justify-content:center;flex-wrap:wrap}
+.menu-column{flex:1;min-width:280px;max-width:680px}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.menu-card{
+  border-radius:12px;padding:12px;background:linear-gradient(180deg, #fff, #fbfdff);
+  border:1px solid var(--soft-border);cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;transition:transform .12s ease, box-shadow .12s ease;
+}
+.menu-card:hover{transform:translateY(-6px);box-shadow:0 12px 40px rgba(16,24,40,0.06)}
+.menu-card .name{font-weight:800}
+.menu-card .desc{color:var(--muted);font-size:0.92rem;margin-top:6px}
+.menu-card .price{font-weight:800;color:var(--danger);margin-top:8px}
+.menu-card.selected{outline:4px solid rgba(11,132,87,0.12);box-shadow:0 14px 48px rgba(11,132,87,0.06)}
+
+/* ORDER summary (index) */
+.order-panel{width:360px;position:relative}
+.order-list{display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;margin-top:8px}
+.order-item{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:10px;background:#fbfbfc;border:1px solid rgba(16,24,40,0.03)}
+.qty{width:72px;padding:8px;border-radius:8px;border:1px solid rgba(16,24,40,0.06);text-align:center}
+
+/* ADMIN / COOKER lists */
+.list{display:flex;flex-direction:column;gap:12px}
+.order-card{
+  padding:14px;border-radius:12px;border:1px solid var(--soft-border);
+  background:var(--card);box-shadow:0 10px 30px rgba(16,24,40,0.04);position:relative;
+}
+/* differentiate pedidos vs reservas */
+.order-card.pedido{border-left:6px solid rgba(34,197,94,0.9);background:linear-gradient(90deg, rgba(229,249,235,0.6), #fff)}
+.order-card.reserva{border-left:6px solid rgba(59,130,246,0.9);background:linear-gradient(90deg, rgba(229,241,255,0.6), #fff)}
+
+/* order meta row */
+.order-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.meta-left{font-weight:800}
+.meta-right{font-size:0.9rem;color:var(--muted)}
+
+/* platillos list */
+.platillos{margin:8px 0 0 18px;color:var(--text)}
+.platillos li{margin-bottom:6px}
+
+/* actions row */
+.actions{margin-top:12px;display:flex;gap:8px}
+
+/* STATUS pill */
+.status-pill{position:absolute;top:12px;right:12px;padding:6px 10px;border-radius:999px;font-weight:800;font-size:0.82rem}
+.status-pendiente{background:var(--warning);color:#111}
+.status-preparada{background:var(--success);color:#fff}
+.status-aprobada{background:var(--success);color:#fff}
+.status-cancelada{background:var(--danger);color:#fff}
+
+/* FORM card (reservar) */
+.form-card{max-width:640px;margin:18px auto;padding:18px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid var(--soft-border);box-shadow:var(--shadow-sm)}
+
+/* admin helpers */
+.admin-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.counter{background:#fff;padding:8px 12px;border-radius:10px;border:1px solid var(--soft-border);font-weight:800}
+
+/* small responsive tweaks */
+@media (max-width:960px){
+  .menu-wrap{flex-direction:column;align-items:center}
+  .order-panel{width:100%;max-width:720px}
+  .menu-column{width:100%}
+}
+
+/* micro helpers */
+.centered{display:flex;align-items:center;justify-content:center}
+.hidden{display:none!important}
+
+/* Utilities for color text */
+.text-muted{color:var(--muted)}
+.text-success{color:var(--success)}
+.text-danger{color:var(--danger)}
+
+/* Logo title style */
+.titulo-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* centra el conjunto */
+  gap: 12px;
+  margin: 0.5rem 0;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.titulo-logo .logo {
+  width: 150px;      /* ajusta tamaño */
+  height: auto;
+  display: inline-block;
+  object-fit: cover;
+  border-radius: 8px; /* opcional */
+}
+
+/* responsive: reduce el logo en pantallas pequeñas */
+@media (max-width: 480px) {
+  .titulo-logo {
+    gap: 8px;
+    font-size: 1.1rem;
+  }
+  .titulo-logo .logo { width: 36px; }
+}

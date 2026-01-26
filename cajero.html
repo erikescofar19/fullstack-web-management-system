@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/png" href="logo.png">
+  
+  <title>Cajero - El Sazón de Teté</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .pedido-card { border:1px solid #ccc; padding:12px; margin:10px 0; border-radius:8px; }
+    .pendiente { background:#fff8dc; }
+    .pagado { background:#d4edda; }
+    .pedido-header { display:flex; justify-content:space-between; align-items:center; font-weight:bold; }
+    .pedido-body { margin-top:8px; font-size:0.95rem; }
+    .pedido-body table { width:100%; border-collapse:collapse; margin-top:5px; }
+    .pedido-body th, .pedido-body td { border-bottom:1px solid #ddd; padding:4px 6px; text-align:left; }
+    .pedido-total { text-align:right; font-weight:bold; margin-top:5px; }
+    .controls { margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .btn-pagar, .btn-tarjeta, .btn-eliminar { border:none; padding:6px 12px; border-radius:5px; cursor:pointer; color:#fff; }
+    .btn-pagar { background:#27ae60; }
+    .btn-tarjeta { background:#2980b9; }
+    .btn-eliminar { background:#e74c3c; }
+    input[type=number] { width:80px; padding:4px; border-radius:4px; border:1px solid #ccc; }
+    .no-pedidos { text-align:center; color:#666; margin-top:20px; font-style:italic; }
+
+    h1 {
+      text-align:center; 
+      margin-bottom:16px; 
+      color:#1f2937;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+    .logo { width:80px; height:auto; }
+
+    .links {
+      display:flex;
+      justify-content:center;
+      margin-bottom:20px;
+    }
+    .links a {
+      text-decoration:none;
+      background:#0b8457;
+      color:white;
+      padding:10px 18px;
+      border-radius:8px;
+      font-weight:600;
+      transition: all 0.15s ease;
+    }
+    .links a:hover { background:#096b47; }
+
+    /* Work block styles */
+    .work-block {
+      background: #fff;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .work-block h2 { margin:0 0 8px 0; font-size:1.05rem; color:#1f2937; }
+    .work-list { display:flex; flex-direction:column; gap:10px; min-height:44px; }
+    .order-card {
+      border-radius: 8px;
+      padding:10px;
+      background:#fff;
+      box-shadow:0 1px 6px rgba(0,0,0,0.04);
+      position:relative;
+    }
+    .order-meta { display:flex; justify-content:space-between; font-weight:600; margin-bottom:6px; }
+    .order-card .actions { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+    .status-pill { position:absolute; top:10px; right:10px; padding:4px 8px; border-radius:6px; font-weight:600; font-size:0.8rem; text-transform:uppercase; color:#fff; }
+    .status-pendiente { background:#f1c40f; color:#000; }
+    .status-pagado { background:#2ecc71; }
+
+    /* Paid block styling (diferenciado) */
+    #paidSection {
+      background: #eef7ff;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 12px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+    }
+    #paidSection h2 { margin:0 0 8px 0; color:#0b6fb0; }
+    #paidList .order-card { background:#f6fbff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="titulo-logo">
+      <img src="assets/logo.png" alt="El Sazón de Teté — logo" class="logo" />
+      CAJA
+      <img src="assets/logo.png" alt="El Sazón de Teté — logo" class="logo" />
+    </h1>
+
+    <div class="links">
+      <a href="admin.html">Regresar a Admin</a>
+    </div>
+
+    <!-- BLOQUE: Pedidos por cobrar -->
+    <section class="work-block" aria-labelledby="workTitle">
+      <h2 id="workTitle">Pedidos por cobrar</h2>
+      <div id="workList" class="work-list">
+        <div class="empty">Cargando pedidos...</div>
+      </div>
+    </section>
+
+    <!-- Sección para pedidos pagados (inferior) -->
+    <section id="paidSection">
+      <h2>Pedidos pagados</h2>
+      <div id="paidList"></div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { db } from './app.js';
+    import { collection, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const workList = document.getElementById('workList');
+    const paidList = document.getElementById('paidList');
+
+    const workCards = new Map();   // pending
+    const paidCards = new Map();   // pagados
+
+    // helper escape
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+        .replaceAll('"','&quot;').replaceAll("'",'&#39;');
+    }
+
+    async function getPrecioPlatillo(nombre) {
+      try {
+        const snap = await getDocs(collection(db, 'menus'));
+        for (let docItem of snap.docs) {
+          const data = docItem.data();
+          if (data.nombre === nombre) return data.precio || 0;
+        }
+      } catch(err) { console.error('Error obteniendo precio:', err); }
+      return 0;
+    }
+
+    function formatShortDate(value){
+      if (!value) return '';
+      let d = value.toDate ? value.toDate() : new Date(value);
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const yy = String(d.getFullYear()).slice(-2);
+      return `${dd}-${mm}-${yy}`;
+    }
+
+    // Create a card element for cashier (used for both pending and paid)
+    async function createCardElement(docItem) {
+      const data = docItem.data();
+      const id = docItem.id;
+
+      let tableRows = '';
+      let total = 0;
+      for (let item of data.platillos) {
+        const precio = await getPrecioPlatillo(item.nombre);
+        const subtotal = precio * item.cantidad;
+        total += subtotal;
+        tableRows += `<tr><td>${escapeHtml(item.cantidad + ' x ' + item.nombre)}</td><td>$${precio}</td><td>$${subtotal}</td></tr>`;
+      }
+
+      const div = document.createElement('div');
+      div.className = 'order-card';
+      div.dataset.id = id;
+
+      if (data.status === 'pagado') {
+        div.innerHTML = `
+          <div class="order-meta"><div>Orden #${escapeHtml(String(data.orderNumber))}</div><div>${escapeHtml(formatShortDate(data.createdAt))}</div></div>
+          <div><table><thead><tr><th>Producto</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>${tableRows}</tbody></table></div>
+          <div class="pedido-total">Total: $${total}</div>
+          <div class="order-card actions"><button class="btn-eliminar">Eliminar</button></div>
+          <div class="status-pill status-pagado">Pagado</div>
+        `;
+        div.querySelector('.btn-eliminar').addEventListener('click', async () => {
+          try {
+            await deleteDoc(doc(db, 'pedidos', id));
+          } catch(err) {
+            console.error('Error eliminando pedido pagado:', err);
+            alert('Error al eliminar pedido.');
+          }
+        });
+      } else {
+        // pendiente
+        div.innerHTML = `
+          <div class="order-meta"><div>Orden #${escapeHtml(String(data.orderNumber))}</div><div>${escapeHtml(formatShortDate(data.createdAt))}</div></div>
+          <div><table><thead><tr><th>Producto</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>${tableRows}</tbody></table></div>
+          <div class="pedido-total">Total: $${total}</div>
+          <div class="order-card actions">
+            <label>Efectivo: $<input type="number" min="0" step="1" class="efectivoInput" /></label>
+            <div>Cambio: $<span class="cambioDisplay">0.00</span></div>
+            <button class="btn-pagar">Cobrar</button>
+            <button class="btn-tarjeta">Pago con tarjeta</button>
+          </div>
+          <div class="status-pill status-pendiente">Pendiente</div>
+        `;
+
+        const efectivoInput = div.querySelector('.efectivoInput');
+        const cambioDisplay = div.querySelector('.cambioDisplay');
+        const btnPagar = div.querySelector('.btn-pagar');
+        const btnTarjeta = div.querySelector('.btn-tarjeta');
+
+        efectivoInput?.addEventListener('input', (e) => {
+          const efectivo = parseFloat(e.target.value) || 0;
+          const cambio = efectivo - total;
+          cambioDisplay.innerText = cambio >= 0 ? cambio.toFixed(2) : '0.00';
+        });
+
+        btnPagar?.addEventListener('click', async () => {
+          try {
+            // marcar como pagado y añadir paidAt
+            await updateDoc(doc(db, 'pedidos', id), { status: 'pagado', paidAt: serverTimestamp() });
+            // No manipular DOM aquí: snapshot listener hará la transición correcta.
+          } catch(err) {
+            console.error('Error cobrando pedido:', err);
+            alert('Error al cobrar pedido.');
+          }
+        });
+
+        btnTarjeta?.addEventListener('click', () => {
+          alert('Ingrese tarjeta para procesar el pago.');
+        });
+      }
+
+      return div;
+    }
+
+    // snapshot listener
+    onSnapshot(collection(db, 'pedidos'), async snapshot => {
+      // classify
+      const pendientes = [];
+      const pagados = [];
+
+      snapshot.docs.slice().sort((a,b) => {
+        const A = a.data().orderNumber ?? 0;
+        const B = b.data().orderNumber ?? 0;
+        if (A !== B) return A - B;
+        const at = a.data().createdAt ? (a.data().createdAt.seconds || 0) : 0;
+        const bt = b.data().createdAt ? (b.data().createdAt.seconds || 0) : 0;
+        return at - bt;
+      }).forEach(docItem => {
+        const st = (docItem.data().status || '').toLowerCase();
+        if (st === 'pagado') pagados.push(docItem);
+        else pendientes.push(docItem);
+      });
+
+      // ---- Update pending (work) block ----
+      // remove pending cards that disappeared
+      [...workCards.keys()].forEach(id => {
+        if (!pendientes.find(d => d.id === id)) {
+          const node = workCards.get(id);
+          if (node) node.remove();
+          workCards.delete(id);
+        }
+      });
+
+      if (pendientes.length === 0) {
+        workList.innerHTML = '<div class="empty">No hay pedidos por cobrar.</div>';
+      } else {
+        // remove placeholder
+        if (workList.querySelector('.empty')) workList.innerHTML = '';
+        // add/update pending
+        for (const docItem of pendientes) {
+          const id = docItem.id;
+          if (!workCards.has(id)) {
+            const el = await createCardElement(docItem);
+            workCards.set(id, el);
+            workList.appendChild(el);
+          } else {
+            // update existing by replacing
+            const existing = workCards.get(id);
+            const newEl = await createCardElement(docItem);
+            workList.replaceChild(newEl, existing);
+            workCards.set(id, newEl);
+          }
+        }
+      }
+
+      // ---- Update paid list ----
+      // remove paid cards that disappeared
+      [...paidCards.keys()].forEach(id => {
+        if (!pagados.find(d => d.id === id)) {
+          const node = paidCards.get(id);
+          if (node) node.remove();
+          paidCards.delete(id);
+        }
+      });
+
+      // add/update paid
+      // Instead of clearing paidList immediately (which can cause brief duplicates),
+      // we will replace/add each paid item and ensure any pending counterpart is removed.
+      for (const docItem of pagados) {
+        const id = docItem.id;
+
+        // If this id exists in workCards (pending), remove it to avoid duplicate.
+        if (workCards.has(id)) {
+          const pendingNode = workCards.get(id);
+          if (pendingNode) pendingNode.remove();
+          workCards.delete(id);
+        }
+
+        if (!paidCards.has(id)) {
+          const el = await createCardElement(docItem);
+          paidCards.set(id, el);
+          paidList.appendChild(el);
+        } else {
+          // replace updated paid card
+          const existing = paidCards.get(id);
+          const newEl = await createCardElement(docItem);
+          paidList.replaceChild(newEl, existing);
+          paidCards.set(id, newEl);
+        }
+      }
+
+      // If there are no paid items, clear paidList or show nothing (keeps block visible)
+      if (pagados.length === 0) {
+        paidList.innerHTML = '<div class="empty">No hay pedidos pagados aún.</div>';
+      } else {
+        // ensure placeholder removed if present
+        const placeholder = paidList.querySelector('.empty');
+        if (placeholder) placeholder.remove();
+      }
+
+    }, err => {
+      console.error('Error al escuchar pedidos:', err);
+      workList.innerHTML = '<div class="empty">Error cargando pedidos. Revisa la consola.</div>';
+    });
+
+  </script>
+</body>
+</html>
