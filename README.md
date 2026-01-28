@@ -8,7 +8,7 @@ A fullstack web application designed to manage business operations using role-ba
 
 The system simulates a real-world operational environment (restaurant-style workflow), where different users interact with the platform according to their role and permissions.
 
-🚀 Key Features
+   KEY FEATURES
 
 Role-based authentication (Admin, Cashier, Cook)
 
@@ -22,8 +22,7 @@ Secure access with Firebase Authentication
 
 Responsive UI (mobile & desktop)
 
-👥 Roles & Responsibilities
-
+   ROLES & RESPONSABILITIES
 Administrator
 
 User and menu management
@@ -46,7 +45,7 @@ Real-time order visualization
 
 Order status updates (preparing / ready)
 
-🧩 System Modules
+   SYSTEM MODULES
 
 Authentication
 
@@ -64,7 +63,7 @@ Admin Dashboard
 
 Access to modules is strictly controlled by user role.
 
-🏗️ Architecture Overview
+   ARCHITECTURE OVERVIEW
 
 Frontend: HTML, CSS, JavaScript
 
@@ -78,7 +77,7 @@ Architecture: Client–Server
 
 Data flow: Fully synchronized in real time across roles
 
-🗄️ Database (Firestore)
+  DATABASE (FIREBASE)
 
 Main collections:
 
@@ -92,7 +91,7 @@ orders
 
 Optimized with indexes for date, status, and user queries.
 
-🛠️ Tech Stack
+  TECH STACK
 
 Frontend
 
@@ -114,7 +113,7 @@ Security Rules
 
 Hosting
 
-## 🗂️ Project Structure
+##  PROJECT STRUCTURE
 
 ```bash 
 
@@ -152,7 +151,7 @@ fullstack-web-management-system/
 └── .gitignore
 ```
 
-🔐 Security
+   SECURITY
 
 Firebase Authentication
 
@@ -162,7 +161,7 @@ Firestore security rules
 
 Restricted access to sensitive modules
 
-🔗 Links
+   LINKS
 
 Live App: https://sazon-tete.web.app
 
@@ -172,11 +171,11 @@ Demo Video: https://drive.google.com/file/d/1O0STTgekU5gSfQqalsQofp0dSWgIlabs/vi
 
 Source Code: https://drive.google.com/drive/folders/1A8mOoLQw94BxS4CR9oxgJKJYp3hdTZkO
 
-📌 Status
+   STATUS
 
-✅ Functional
-🔧 Continuous improvement
+ -Functional
+ -Continuous improvement
 
-👨‍💻 Author
+   AUTHOR
 
 Developed by Erik Eduardo Escobar Farias
