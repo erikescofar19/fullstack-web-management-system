@@ -1,14 +1,14 @@
-🌐 Language:
+## Language:
 [English](README.md) | [Español](README.es.md)
 
 
-📦 Fullstack – Web Management System
+## Fullstack – Web Management System
 
 A fullstack web application designed to manage business operations using role-based access, modular architecture, and real-time data synchronization.
 
 The system simulates a real-world operational environment (restaurant-style workflow), where different users interact with the platform according to their role and permissions.
 
-   KEY FEATURES
+##   KEY FEATURES
 
 Role-based authentication (Admin, Cashier, Cook)
 
@@ -22,7 +22,7 @@ Secure access with Firebase Authentication
 
 Responsive UI (mobile & desktop)
 
-   ROLES & RESPONSABILITIES
+ ##  ROLES & RESPONSABILITIES
 Administrator
 
 User and menu management
@@ -45,7 +45,7 @@ Real-time order visualization
 
 Order status updates (preparing / ready)
 
-   SYSTEM MODULES
+ ##  SYSTEM MODULES
 
 Authentication
 
@@ -63,7 +63,7 @@ Admin Dashboard
 
 Access to modules is strictly controlled by user role.
 
-   ARCHITECTURE OVERVIEW
+ ##  ARCHITECTURE OVERVIEW
 
 Frontend: HTML, CSS, JavaScript
 
@@ -77,7 +77,7 @@ Architecture: Client–Server
 
 Data flow: Fully synchronized in real time across roles
 
-  DATABASE (FIREBASE)
+##  DATABASE (FIREBASE)
 
 Main collections:
 
@@ -91,7 +91,7 @@ orders
 
 Optimized with indexes for date, status, and user queries.
 
-  TECH STACK
+##  TECH STACK
 
 Frontend
 
@@ -151,7 +151,7 @@ fullstack-web-management-system/
 └── .gitignore
 ```
 
-   SECURITY
+##   SECURITY
 
 Firebase Authentication
 
@@ -161,7 +161,7 @@ Firestore security rules
 
 Restricted access to sensitive modules
 
-   LINKS
+##   LINKS
 
 Live App: https://sazon-tete.web.app
 
@@ -171,11 +171,11 @@ Demo Video: https://drive.google.com/file/d/1O0STTgekU5gSfQqalsQofp0dSWgIlabs/vi
 
 Source Code: https://drive.google.com/drive/folders/1A8mOoLQw94BxS4CR9oxgJKJYp3hdTZkO
 
-   STATUS
+##   STATUS
 
  -Functional
  -Continuous improvement
 
-   AUTHOR
+##   AUTHOR
 
 Developed by Erik Eduardo Escobar Farias

@@ -1,14 +1,14 @@
-   Idioma:
+ ##  Idioma:
 [English](README.md) | [Español](README.es.md)
 
 
- Fullstack – Sistema Web de Gestión
+## Fullstack – Sistema Web de Gestión
 
 Aplicación web fullstack diseñada para gestionar operaciones de negocio utilizando acceso basado en roles, arquitectura modular y sincronización de datos en tiempo real.
 
 El sistema simula un entorno operativo del mundo real (flujo tipo restaurante), donde distintos usuarios interactúan con la plataforma según su rol y permisos.
 
-   Funciones principales
+##   Funciones principales
 
 Autenticación basada en roles (Administrador, Cajero, Cocinero)
 
@@ -22,7 +22,7 @@ Acceso seguro con Firebase Authentication
 
 Interfaz responsiva (móvil y escritorio)
 
-    Roles y responsabilidades
+  ##  Roles y responsabilidades
 
 Administrador
 
@@ -46,7 +46,7 @@ Visualización de pedidos en tiempo real
 
 Actualización del estado de pedidos (preparando / listo)
 
-   Módulos del sistema
+  ## Módulos del sistema
 
 Autenticación
 
@@ -64,7 +64,7 @@ Dashboard de administrador
 
 El acceso a los módulos está estrictamente controlado por el rol del usuario.
 
-   Descripción de la arquitectura
+ ##  Descripción de la arquitectura
 
 Frontend: HTML, CSS, JavaScript
 
@@ -78,7 +78,7 @@ Arquitectura: Cliente–Servidor
 
 Flujo de datos: Totalmente sincronizado en tiempo real entre roles
 
-   Base de datos (Firestore)
+ ##  Base de datos (Firestore)
 
 Colecciones principales:
 
@@ -92,7 +92,7 @@ orders
 
 Optimizada con índices para consultas por fecha, estado y usuario.
 
-🛠️ Stack tecnológico
+## Stack tecnológico
 
 Frontend
 
@@ -114,7 +114,7 @@ Reglas de seguridad
 
 Hosting
 
-    Estructura del proyecto
+ ##   Estructura del proyecto
 
 ```bash
 
@@ -152,7 +152,7 @@ fullstack-web-management-system/
 └── .gitignore
 ```
 
-   Seguridad
+ ##  Seguridad
 
 Firebase Authentication
 
@@ -162,7 +162,7 @@ Reglas de seguridad en Firestore
 
 Acceso restringido a módulos sensibles
 
-   Enlaces
+ ##  Enlaces
 
 Aplicación en vivo: https://sazon-tete.web.app
 
@@ -172,11 +172,11 @@ Video demo: https://drive.google.com/file/d/1O0STTgekU5gSfQqalsQofp0dSWgIlabs/vi
 
 Código fuente: https://drive.google.com/drive/folders/1A8mOoLQw94BxS4CR9oxgJKJYp3hdTZkO
 
-   Estado
+ ##  Estado
 
 -Funcional
 -En mejora continua
 
-    Autor
+  ##  Autor
 
 Desarrollado por Erik Eduardo Escobar Farias
