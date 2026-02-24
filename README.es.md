@@ -8,6 +8,14 @@ Aplicación web fullstack diseñada para gestionar operaciones de negocio utiliz
 
 El sistema simula un entorno operativo del mundo real (flujo tipo restaurante), donde distintos usuarios interactúan con la plataforma según su rol y permisos.
 
+##  Enlaces
+
+Aplicación en vivo: https://sazon-tete.web.app
+
+Panel de administrador: https://sazon-tete.web.app/admin.html
+
+Video demo: https://drive.google.com/file/d/1O0STTgekU5gSfQqalsQofp0dSWgIlabs/view
+
 ##   Funciones principales
 
 Autenticación basada en roles (Administrador, Cajero, Cocinero)
@@ -160,23 +168,14 @@ Autorización basada en roles
 
 Reglas de seguridad en Firestore
 
-Acceso restringido a módulos sensibles
+Acceso restringido a módulos sensibles 
 
- ##  Enlaces
-
-Aplicación en vivo: https://sazon-tete.web.app
-
-Panel de administrador: https://sazon-tete.web.app/admin.html
-
-Video demo: https://drive.google.com/file/d/1O0STTgekU5gSfQqalsQofp0dSWgIlabs/view
-
-Código fuente: https://drive.google.com/drive/folders/1A8mOoLQw94BxS4CR9oxgJKJYp3hdTZkO
-
- ##  Estado
+##  Estado
 
 -Funcional
+
 -En mejora continua
 
-  ##  Autor
+##  Autor
 
 Desarrollado por Erik Eduardo Escobar Farias

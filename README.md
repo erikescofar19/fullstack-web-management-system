@@ -8,6 +8,14 @@ A fullstack web application designed to manage business operations using role-ba
 
 The system simulates a real-world operational environment (restaurant-style workflow), where different users interact with the platform according to their role and permissions.
 
+##   LINKS
+
+Live App: https://sazon-tete.web.app
+
+Admin Panel: https://sazon-tete.web.app/admin.html
+
+Demo Video: https://drive.google.com/file/d/1O0STTgekU5gSfQqalsQofp0dSWgIlabs/view
+
 ##   KEY FEATURES
 
 Role-based authentication (Admin, Cashier, Cook)
@@ -161,19 +169,10 @@ Firestore security rules
 
 Restricted access to sensitive modules
 
-##   LINKS
-
-Live App: https://sazon-tete.web.app
-
-Admin Panel: https://sazon-tete.web.app/admin.html
-
-Demo Video: https://drive.google.com/file/d/1O0STTgekU5gSfQqalsQofp0dSWgIlabs/view
-
-Source Code: https://drive.google.com/drive/folders/1A8mOoLQw94BxS4CR9oxgJKJYp3hdTZkO
-
 ##   STATUS
 
  -Functional
+
  -Continuous improvement
 
 ##   AUTHOR
